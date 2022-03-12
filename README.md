@@ -1,4 +1,4 @@
-# prudentialCarRentalService
+# Car rental demo
 
 This is a demo project for car rental.
 
