@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.carrental.demo.mapper.CarDaoCustom">
+    <!--get all cars-->
+    <select id="getAllModel" resultType="com.carrental.demo.vo.ModelVO">
+        SELECT carModel, count(carModel) stock
+        FROM car
+        where status = 0
+           or status = 1 and `lockTime` <![CDATA[<]]> #{now} - 2 * 60 * 60 * 1000
+        group by carModel
+    </select>
+    <select id="getAllCarByModel" resultType="com.carrental.demo.vo.CarVO">
+        SELECT id, carModel, picture, description
+        FROM car
+        where carModel = #{model} and status = 0
+           or (carModel = #{model} and status = 1 and lockTime <![CDATA[<]]> #{now} - 2 * 60 * 60 * 1000)
+    </select>
+
+    <select id="getCountByRenterId" parameterType="Integer" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM car
+        WHERE renterId = #{renterId};
+    </select>
+</mapper>

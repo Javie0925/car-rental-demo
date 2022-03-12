@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Rental</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="layui/css/layui.css"/>
+    <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="layui/layui.js"></script>
+
+    <style>
+        .layui-table-cell {
+            height: auto !important;
+            white-space: normal;
+        }
+    </style>
+
+</head>
+<body>
+<!-- modal -->
+<div class="modal fade" id="carListModal" tabindex="-999" aria-hidden="true">
+    <div class="modal-dialog modal-lg mt-5">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title"><strong id="modelName"></strong></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="layui-table m-0" id="carList" lay-filter="carList"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg mt-5">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title"><strong>Booking Information</strong></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="layui-form" action="" lay-filter="bookForm">
+                    <div class="row layui-form-item">
+                        <label class="col layui-form-label">Car ID</label>
+                        <div class="col-6 layui-input-block ms-0">
+                            <input type="text" name="id" autocomplete="off"
+                                   placeholder="" class="layui-input" disabled>
+                        </div>
+                        <div class="col-2"></div>
+                    </div>
+                    <div class="row layui-form-item">
+                        <label class="col layui-form-label">Car Model</label>
+                        <div class="col-6 layui-input-block ms-0">
+                            <input type="text" name="carModel" autocomplete="off"
+                                   placeholder="" class="layui-input" disabled>
+                        </div>
+                        <div class="col-2"></div>
+                    </div>
+                    <div class="row layui-form-item">
+                        <label class="col layui-form-label">Your Name</label>
+                        <div class="col-6 layui-input-block ms-0">
+                            <input type="text" name="name" autocomplete="off"
+                                   placeholder="" class="layui-input">
+                        </div>
+                        <div class="col-2"></div>
+                    </div>
+                    <div class="row layui-form-item">
+                        <label class="col layui-form-label">Phone</label>
+                        <div class="col-6 layui-input-block ms-0">
+                            <input name="phone" type="tel" lay-verify="required|phone" class="layui-input">
+                        </div>
+                        <div class="col-2"></div>
+                    </div>
+                    <div class="row layui-form-item">
+                        <label class="col layui-form-label">Address</label>
+                        <div class="col-6 layui-input-block ms-0">
+                            <input name="address" type="text" class="layui-input">
+                        </div>
+                        <div class="col-2"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block d-flex justify-content-center ms-0">
+                            <button type="button" class="layui-btn" lay-submit="" lay-filter="confirmBook">Confirm
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container">
+    <ul class="layui-nav" lay-bar="disabled">
+        <li class="layui-nav-item">
+            <a href="javascript:;">Car Rental Service<span class="layui-badge-dot"></span></a>
+        </li>
+    </ul>
+    <div id="content" class="row justify-content-center">
+        <div class="col">
+            <table class="layui-hide" id="modelList" lay-filter="modelList"></table>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/html" id="modelListOperationToolBar">
+    <a class="layui-btn layui-btn-xs text-decoration-none" lay-event="detail">detail</a>
+</script>
+<script type="text/html" id="carListOperationToolBar">
+    <a class="layui-btn layui-btn-xs text-decoration-none" lay-event="book">book</a>
+</script>
+
+<script>
+    layui.use([], function () {
+        //import components
+        let table = layui.table;
+        let form = layui.form;
+        let layer = layui.layer;
+        let laydate = layui.laydate;
+        let $ = layui.jquery;
+        let rentModal = new bootstrap.Modal(document.getElementById('rentModal'));
+        let carListModal = new bootstrap.Modal(document.getElementById('carListModal'));
+
+        let modelListTable = table.render({
+            elem: '#modelList'
+            //, skin: 'line'
+            , url: "/car/model"
+            , method: 'get'
+            , request: {}
+            , defaultToolbar: false
+            //, contentType: 'application/json'
+            , title: 'car table'
+            //, height: 350
+            //, width: 900
+            , cols: [[
+                {field: 'carModel', title: 'Car Model', align: 'center'}
+                , {field: 'stock', title: 'In Stock', align: 'center'}
+                , {fixed: 'right', title: 'Operation', toolbar: '#modelListOperationToolBar', align: 'center'}
+            ]]
+            //, page: true
+            , done: function (res, curr, count) {
+            }
+        });
+        let carListTable;
+        table.on('tool(modelList)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                $("#modelName").text(data.carModel)
+                carListModal.show();
+                carListTable = table.render({
+                    elem: '#carList'
+                    //, skin: 'nob'
+                    , url: "/car?model=" + data.carModel
+                    , method: 'get'
+                    , request: {}
+                    , defaultToolbar: false
+                    //, contentType: 'application/json'
+                    , title: 'car table'
+                    //, width: '700'
+                    //, cellMinWidth: 100
+                    , height: 'full'
+                    , cols: [[
+                        {field: 'id', title: 'ID', align: 'center'}
+                        //, {field: 'model', title: 'Car Model', align: 'center'}
+                        , {
+                            field: 'picture',
+                            title: 'Picture',
+                            align: 'center',
+                            templet: "<span><img src='{{ d.picture }}' width='100px'></span>",
+                            height: 300
+                        }
+                        , {field: 'description', title: 'Description', align: 'center'}
+                        , {
+                            fixed: 'right',
+                            title: 'Operation',
+                            toolbar: '#carListOperationToolBar',
+                            align: 'center',
+                            unsize: false
+                        }
+                    ]]
+                    , page: false
+                    , done: function (res, curr, count) {
+                        carListTable.resize();
+                    }
+                });
+                carListTable.resize();
+                table.on('tool(carList)', function (obj) {
+                    let data = obj.data;
+                    if (obj.event === 'book') {
+                        form.val('bookForm', data)
+                        rentModal.show();
+                    }
+                })
+            }
+        })
+
+        form.on('submit(confirmBook)', function (elem) {
+            let field = elem.field;
+            console.log(field)
+            layer.confirm('confirm booking this car?', {
+                btn: ['Yes', 'No'],
+                offset: top.scrollY + 150 + 'px',
+                title: "Confirm",
+                shade: 0.01,
+                shadeClose: true
+            }, function (index) {
+                layer.close(index)
+                $.ajax("/car/booking", {
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify(field),
+                    success: function (res) {
+                        if (res.code != 0) {
+                            layer.msg(res.msg, {icon: 5, anim: 6});
+                            return;
+                        }
+                        layer.confirm("booking succeeded! This car will be lock for 2 hours for you. Please come to our store" +
+                            " to provide more necessary information and pay the bill before taking the car within 2 hours.", {
+                            btn: ['Ok'],
+                            offset: top.scrollY + 150 + 'px',
+                            title: "Success",
+                            shade: 0.01,
+                            shadeClose: true
+                        })
+                        modelListTable.reload();
+                        carListTable.reload();
+                        rentModal.hide();
+                    },
+                    error: function (e) {
+                        layer.msg(e, {icon: 5, anim: 6})
+                    }
+                })
+            });
+        })
+    })
+</script>
+</body>
+</html>

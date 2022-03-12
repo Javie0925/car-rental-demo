@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.carrental.demo.mapper.RenterDaoCustom">
+    <!--get user info-->
+    <select id="getByPhone" parameterType="String" resultType="com.carrental.demo.entity.Renter">
+        SELECT *
+        FROM renter
+        WHERE phone = #{phone}
+    </select>
+
+    <!--insert new user record-->
+    <insert id="insert" parameterType="com.carrental.demo.entity.Renter">
+        INSERT INTO renter(`name`, `phone`, `address`)
+        VALUES (#{name}, #{phone}, #{address});
+    </insert>
+
+    <update id="updateById" parameterType="com.carrental.demo.entity.Renter">
+        UPDATE renter
+        SET name=#{name},
+            phone=#{phone},
+            address=#{address}
+    </update>
+</mapper>
