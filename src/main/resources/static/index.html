@@ -186,7 +186,7 @@
                         carListTable.resize();
                     }
                 });
-                carListTable.resize();
+                setTimeout(function (){carListTable.resize();},2000);
                 table.on('tool(carList)', function (obj) {
                     let data = obj.data;
                     if (obj.event === 'book') {
